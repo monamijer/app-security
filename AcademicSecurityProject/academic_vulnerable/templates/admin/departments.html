@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Départements{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between">
+    <h2><i class="bi bi-diagram-3"></i> Départements</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newDeptModal">
+        <i class="bi bi-plus"></i> Nouveau département
+    </button>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Code</th><th>Nom</th><th>Faculté</th><th>Responsable</th></tr></thead>
+            <tbody>
+            {% for d in departments %}
+                <tr>
+                    <td><strong>{{ d.code }}</strong></td>
+                    <td>{{ d.name }}</td>
+                    <td>{{ d.faculty.name }}</td>
+                    <td>{{ d.head_name or '—' }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4" class="text-center text-muted py-4">Aucun département.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="newDeptModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" action="{{ url_for('admin.create_department') }}" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nouveau département</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Faculté</label>
+                    <select name="faculty_id" class="form-select" required>
+                        {% for f in faculties %}<option value="{{ f.id }}">{{ f.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Code</label>
+                        <input type="text" name="code" class="form-control" required maxlength="20">
+                    </div>
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">Nom</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Responsable</label>
+                    <input type="text" name="head_name" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button class="btn btn-primary">Créer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

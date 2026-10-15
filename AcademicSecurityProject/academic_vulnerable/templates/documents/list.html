@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Documents{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between">
+    <h2><i class="bi bi-folder2-open"></i> Documents</h2>
+    <a href="{{ url_for('documents.upload') }}" class="btn btn-primary">
+        <i class="bi bi-cloud-upload"></i> Téléverser</a>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Titre</th><th>Fichier</th><th>Taille</th><th>Date</th><th></th></tr></thead>
+            <tbody>
+            {% for d in documents %}
+                <tr>
+                    <td>{{ d.title }}</td>
+                    <td>{{ d.original_filename if d.original_filename is defined else d.filename }}</td>
+                    <td>{{ (d.file_size / 1024) | round(1) }} Ko</td>
+                    <td>{{ d.created_at.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        <a href="{{ url_for('documents.preview', doc_id=d.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i></a>
+                        <a href="{% if d.stored_filename is defined %}
+                                    {{ url_for('documents.download', doc_id=d.id) }}
+                                 {% else %}
+                                    {{ url_for('documents.download', filename=d.filename) }}
+                                 {% endif %}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-download"></i></a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5" class="text-center text-muted py-4">Aucun document.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

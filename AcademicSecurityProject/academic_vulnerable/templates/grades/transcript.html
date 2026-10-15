@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Relevé de notes{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-file-earmark-text"></i> Relevé de notes</h2>
+    <p class="text-muted">{{ student.full_name }} — {{ student.matricule }}</p>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>Cours</th><th>Évaluation</th><th>Note</th><th>Coefficient</th></tr></thead>
+            <tbody>
+            {% for g in student.grades %}
+                <tr>
+                    <td>{{ g.evaluation.course.code }} — {{ g.evaluation.course.title }}</td>
+                    <td>{{ g.evaluation.title }}</td>
+                    <td>{{ g.score }}/{{ g.evaluation.max_score }}</td>
+                    <td>×{{ g.evaluation.weight }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

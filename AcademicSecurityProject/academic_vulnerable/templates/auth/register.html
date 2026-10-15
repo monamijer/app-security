@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Inscription{% endblock %}
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-header">
+            <i class="bi bi-person-plus"></i>
+            <h1>Créer un compte</h1>
+            <p>Inscription publique (démo)</p>
+        </div>
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label">Nom d'utilisateur</label>
+                <input type="text" name="username" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Prénom</label>
+                <input type="text" name="first_name" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Nom</label>
+                <input type="text" name="last_name" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Mot de passe</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <button class="btn btn-primary w-100">S'inscrire</button>
+        </form>
+        <div class="login-hint">
+            <small><a href="{{ url_for('auth.login') }}">Retour à la connexion</a></small>
+        </div>
+    </div>
+</div>
+{% endblock %}

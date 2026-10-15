@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Historique de connexion{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-clock-history"></i> Historique de connexion</h2>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>IP</th>
+                    <th>Navigateur</th>
+                    <th>Résultat</th>
+                    <th>Raison</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for l in logs %}
+                <tr>
+                    <td>{{ l.created_at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                    <td><code>{{ l.ip_address or '—' }}</code></td>
+                    <td class="text-muted small">{{ (l.user_agent or '—')[:60] }}</td>
+                    <td>
+                        {% if l.success %}
+                            <span class="badge bg-success">Succès</span>
+                        {% else %}
+                            <span class="badge bg-danger">Échec</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ l.reason or '—' }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5" class="text-center text-muted py-4">
+                    Aucun historique.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

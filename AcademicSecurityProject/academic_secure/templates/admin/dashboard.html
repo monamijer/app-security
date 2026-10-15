@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord — Administration{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-speedometer2"></i> Tableau de bord</h2>
+    <p class="text-muted">Vue d'ensemble de l'université — Année 2025-2026</p>
+</div>
+
+<div class="row g-3 stats-grid">
+    <div class="col-md-3">
+        <div class="stat-card stat-primary">
+            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-value">{{ stats.students }}</div>
+            <div class="stat-label">Étudiants</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-success">
+            <div class="stat-icon"><i class="bi bi-person-video3"></i></div>
+            <div class="stat-value">{{ stats.teachers }}</div>
+            <div class="stat-label">Enseignants</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-warning">
+            <div class="stat-icon"><i class="bi bi-book"></i></div>
+            <div class="stat-value">{{ stats.courses }}</div>
+            <div class="stat-label">Cours</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-info">
+            <div class="stat-icon"><i class="bi bi-clipboard-data"></i></div>
+            <div class="stat-value">{{ stats.avg_grade }}</div>
+            <div class="stat-label">Moyenne générale / 20</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-3">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-bar-chart"></i> Répartition par département</div>
+            <div class="card-body">
+                <canvas id="deptChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-lightning"></i> Actions rapides</div>
+            <div class="card-body d-grid gap-2">
+                <a href="{{ url_for('students.create') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-person-plus"></i> Nouvel étudiant</a>
+                <a href="{{ url_for('teachers.create') }}" class="btn btn-outline-success">
+                    <i class="bi bi-person-plus"></i> Nouvel enseignant</a>
+                <a href="{{ url_for('courses.create') }}" class="btn btn-outline-warning">
+                    <i class="bi bi-book"></i> Nouveau cours</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const deptData = {{ stats.by_dept | tojson }};
+const ctx = document.getElementById('deptChart');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: deptData.map(d => d.label),
+        datasets: [{
+            label: 'Étudiants',
+            data: deptData.map(d => d.value),
+            backgroundColor: '#1e3a8a'
+        }]
+    },
+    options: {responsive: true, plugins: {legend: {display: false}}}
+});
+</script>
+{% endblock %}

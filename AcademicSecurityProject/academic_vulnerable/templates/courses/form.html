@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Nouveau cours{% endblock %}
+{% block content %}
+<div class="page-header"><h2><i class="bi bi-plus"></i> Nouveau cours</h2></div>
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-3"><label class="form-label">Code</label>
+                    <input type="text" name="code" class="form-control" placeholder="INFO306" required></div>
+                <div class="col-md-9"><label class="form-label">Intitulé</label>
+                    <input type="text" name="title" class="form-control" required></div>
+                <div class="col-md-3"><label class="form-label">Crédits</label>
+                    <input type="number" name="credits" class="form-control" value="3" min="1" max="12"></div>
+                <div class="col-md-3"><label class="form-label">Semestre</label>
+                    <select name="semester" class="form-select">
+                        {% for s in ['S1','S2','S3','S4','S5','S6'] %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+                    </select></div>
+                <div class="col-md-3"><label class="form-label">Département</label>
+                    <select name="department_id" class="form-select" required>
+                        {% for d in departments %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
+                    </select></div>
+                <div class="col-md-3"><label class="form-label">Enseignant</label>
+                    <select name="teacher_id" class="form-select">
+                        <option value="">— Aucun —</option>
+                        {% for t in teachers %}<option value="{{ t.id }}">{{ t.full_name }}</option>{% endfor %}
+                    </select></div>
+                <div class="col-12"><label class="form-label">Description</label>
+                    <textarea name="description" rows="3" class="form-control"></textarea></div>
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-primary"><i class="bi bi-check"></i> Enregistrer</button>
+                <a href="{{ url_for('courses.index') }}" class="btn btn-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

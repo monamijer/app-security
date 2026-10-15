@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Diagnostic réseau{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-activity"></i> Diagnostic réseau</h2>
+    <p class="text-muted">Outil réservé aux administrateurs — Laboratoire isolé</p>
+</div>
+<div class="card">
+    <div class="card-body">
+        <form method="post" class="row g-2">
+            <div class="col-md-8">
+                <input type="text" name="target" value="{{ target }}" class="form-control"
+                       placeholder="Adresse IP à tester (ex: 192.168.1.1)" required>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-primary w-100"><i class="bi bi-play"></i> Lancer le diagnostic</button>
+            </div>
+        </form>
+        {% if result %}
+        <pre class="diagnostic-output mt-3">{{ result }}</pre>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

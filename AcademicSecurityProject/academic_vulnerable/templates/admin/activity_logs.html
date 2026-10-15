@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ title or 'Journaux d\'activité' }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-journal-text"></i> {{ title or "Journaux d'activité" }}</h2>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    {% if logs and logs[0].__class__.__name__ == 'LoginHistory' %}
+                        <th>Utilisateur</th><th>IP</th><th>Succès</th><th>Raison</th>
+                    {% else %}
+                        <th>Utilisateur</th><th>Action</th><th>Entité</th><th>Détails</th><th>IP</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+            {% for l in logs %}
+                <tr>
+                    <td>{{ l.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    {% if l.__class__.__name__ == 'LoginHistory' %}
+                        <td>{{ l.username_attempted }}</td>
+                        <td><code>{{ l.ip_address }}</code></td>
+                        <td>
+                            {% if l.success %}<span class="badge bg-success">OK</span>
+                            {% else %}<span class="badge bg-danger">Échec</span>{% endif %}
+                        </td>
+                        <td>{{ l.reason or '—' }}</td>
+                    {% else %}
+                        <td>{{ l.user.full_name if l.user else '—' }}</td>
+                        <td><span class="badge bg-primary">{{ l.action }}</span></td>
+                        <td>{{ l.entity or '—' }} {% if l.entity_id %}#{{ l.entity_id }}{% endif %}</td>
+                        <td class="text-muted small">{{ l.details or '' }}</td>
+                        <td><code>{{ l.ip_address or '—' }}</code></td>
+                    {% endif %}
+                </tr>
+            {% else %}
+                <tr><td colspan="5" class="text-center text-muted py-4">Aucune entrée.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

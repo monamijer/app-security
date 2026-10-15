@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Rôles{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-shield-lock"></i> Rôles et permissions</h2>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>Rôle</th><th>Description</th><th>Utilisateurs</th></tr></thead>
+            <tbody>
+            {% for r in roles %}
+                <tr>
+                    <td><span class="badge bg-primary">{{ r.name }}</span></td>
+                    <td>{{ r.description or '—' }}</td>
+                    <td>{{ r.users.count() }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="3" class="text-center text-muted py-4">Aucun rôle.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

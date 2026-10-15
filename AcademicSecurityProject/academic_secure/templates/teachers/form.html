@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Nouvel enseignant{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-person-plus"></i> Nouvel enseignant</h2>
+</div>
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">Nom d'utilisateur</label>
+                    <input type="text" name="username" class="form-control" required></div>
+                <div class="col-md-6"><label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" required></div>
+                <div class="col-md-6"><label class="form-label">Prénom</label>
+                    <input type="text" name="first_name" class="form-control" required></div>
+                <div class="col-md-6"><label class="form-label">Nom</label>
+                    <input type="text" name="last_name" class="form-control" required></div>
+                <div class="col-md-4"><label class="form-label">Code employé</label>
+                    <input type="text" name="employee_code" class="form-control" placeholder="TCH00006" required></div>
+                <div class="col-md-4"><label class="form-label">Département</label>
+                    <select name="department_id" class="form-select" required>
+                        {% for d in departments %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
+                    </select></div>
+                <div class="col-md-4"><label class="form-label">Mot de passe initial</label>
+                    <input type="password" name="password" class="form-control" required></div>
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-primary"><i class="bi bi-check"></i> Enregistrer</button>
+                <a href="{{ url_for('teachers.index') }}" class="btn btn-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

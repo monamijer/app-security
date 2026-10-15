@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Mon profil{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-person-circle"></i> Mon profil</h2>
+</div>
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <p><strong>Nom complet :</strong> {{ current_user.full_name }}</p>
+                <p><strong>Nom d'utilisateur :</strong> {{ current_user.username }}</p>
+                <p><strong>Email :</strong> {{ current_user.email }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Rôle :</strong> {{ current_user.role.name }}</p>
+                <p><strong>Dernière connexion :</strong>
+                    {{ current_user.last_login.strftime('%d/%m/%Y %H:%M') if current_user.last_login else '—' }}</p>
+            </div>
+            <div class="col-md-4">
+                {% if current_user.student %}
+                <p><strong>Matricule :</strong> {{ current_user.student.matricule }}</p>
+                <p><strong>Département :</strong> {{ current_user.student.department.name }}</p>
+                {% elif current_user.teacher %}
+                <p><strong>Code employé :</strong> {{ current_user.teacher.employee_code }}</p>
+                <p><strong>Département :</strong> {{ current_user.teacher.department.name }}</p>
+                {% endif %}
+            </div>
+        </div>
+        <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-primary">
+            <i class="bi bi-key"></i> Changer mon mot de passe
+        </a>
+    </div>
+</div>
+{% endblock %}

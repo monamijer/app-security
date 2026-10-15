@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Saisie des notes{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-clipboard-data"></i> {{ evaluation.title }}</h2>
+    <p class="text-muted">{{ evaluation.course.code }} — {{ evaluation.course.title }}
+        • Max : {{ evaluation.max_score }}</p>
+</div>
+<form method="post">
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead><tr><th>Matricule</th><th>Nom</th><th>Note / {{ evaluation.max_score }}</th></tr></thead>
+                <tbody>
+                {% for s in students %}
+                    <tr>
+                        <td>{{ s.matricule }}</td>
+                        <td>{{ s.full_name }}</td>
+                        <td>
+                            <input type="number" step="0.01" min="0" max="{{ evaluation.max_score }}"
+                                   name="score_{{ s.id }}" class="form-control"
+                                   value="{{ existing[s.id].score if s.id in existing else '' }}">
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-primary"><i class="bi bi-check"></i> Enregistrer les notes</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

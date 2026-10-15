@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Aperçu — {{ doc.title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-eye"></i> {{ doc.title }}</h2>
+    <p class="text-muted">
+        {{ doc.original_filename if doc.original_filename is defined else doc.filename }}
+        • {{ (doc.file_size / 1024) | round(1) }} Ko
+    </p>
+</div>
+<div class="card">
+    <div class="card-body">
+        {% if doc.mime_type and doc.mime_type.startswith('image/') %}
+            <img src="{% if doc.stored_filename is defined %}
+                          {{ url_for('documents.download', doc_id=doc.id) }}
+                       {% else %}
+                          {{ url_for('documents.download', filename=doc.filename) }}
+                       {% endif %}"
+                 class="img-fluid" alt="{{ doc.title }}">
+        {% else %}
+            <p>Aperçu non disponible pour ce type de fichier.</p>
+            <a href="{% if doc.stored_filename is defined %}
+                        {{ url_for('documents.download', doc_id=doc.id) }}
+                     {% else %}
+                        {{ url_for('documents.download', filename=doc.filename) }}
+                     {% endif %}" class="btn btn-success">
+                <i class="bi bi-download"></i> Télécharger</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

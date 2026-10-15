@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Années académiques{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-calendar3"></i> Années académiques</h2>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Libellé</th><th>Début</th><th>Fin</th><th>Courante</th></tr></thead>
+            <tbody>
+            {% for y in years %}
+                <tr>
+                    <td><strong>{{ y.label }}</strong></td>
+                    <td>{{ y.start_date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ y.end_date.strftime('%d/%m/%Y') }}</td>
+                    <td>{% if y.is_current %}<span class="badge bg-success">Oui</span>{% endif %}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4" class="text-center text-muted py-4">Aucune année enregistrée.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

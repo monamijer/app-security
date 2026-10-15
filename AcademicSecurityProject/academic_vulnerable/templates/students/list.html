@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Étudiants{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between">
+    <h2><i class="bi bi-person-badge"></i> Étudiants</h2>
+    {% if current_user.has_role('admin','academic_manager') %}
+    <a href="{{ url_for('students.create') }}" class="btn btn-primary">
+        <i class="bi bi-person-plus"></i> Nouvel étudiant</a>
+    {% endif %}
+</div>
+
+<!-- ⚠️ VULNÉRABLE : le terme recherché est rendu avec |safe (Mission 1.3) -->
+{% if q %}
+<div class="alert alert-info">
+    Résultats pour : <strong>{{ q | safe }}</strong>
+</div>
+{% endif %}
+
+<form class="row g-2 mb-3">
+    <div class="col-md-6">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Rechercher par matricule…">
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-outline-primary w-100"><i class="bi bi-search"></i></button>
+    </div>
+</form>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Matricule</th><th>Nom</th><th>Département</th><th>Promotion</th><th></th></tr></thead>
+            <tbody>
+            {% for s in students %}
+                <tr>
+                    <td>{{ s.matricule }}</td>
+                    <td>{{ s.full_name }}</td>
+                    <td>{{ s.department.name }}</td>
+                    <td>{{ s.promotion.name }}</td>
+                    <td><a href="{{ url_for('students.detail', student_id=s.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye"></i></a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5" class="text-center text-muted py-4">Aucun étudiant.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

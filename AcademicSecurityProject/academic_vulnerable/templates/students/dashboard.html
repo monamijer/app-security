@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Mon espace étudiant{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-person-badge"></i> Bonjour {{ current_user.first_name }}</h2>
+    <p class="text-muted">Matricule : {{ student.matricule if student else '—' }}</p>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="stat-card stat-primary">
+            <div class="stat-icon"><i class="bi bi-trophy"></i></div>
+            <div class="stat-value">{{ avg }}/20</div>
+            <div class="stat-label">Moyenne générale</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-success">
+            <div class="stat-icon"><i class="bi bi-book"></i></div>
+            <div class="stat-value">{{ student.enrollments.count() if student else 0 }}</div>
+            <div class="stat-label">Cours suivis</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-info">
+            <div class="stat-icon"><i class="bi bi-clipboard"></i></div>
+            <div class="stat-value">{{ grades|length }}</div>
+            <div class="stat-label">Notes enregistrées</div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header"><i class="bi bi-list-check"></i> Mes dernières notes</div>
+    <div class="card-body">
+        {% if grades %}
+        <table class="table table-hover">
+            <thead><tr><th>Cours</th><th>Évaluation</th><th>Note</th></tr></thead>
+            <tbody>
+            {% for g in grades[:10] %}
+                <tr>
+                    <td>{{ g.evaluation.course.code }} — {{ g.evaluation.course.title }}</td>
+                    <td>{{ g.evaluation.title }}</td>
+                    <td><strong>{{ g.score }}/{{ g.evaluation.max_score }}</strong></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">Aucune note pour le moment.</p>
+        {% endif %}
+        <a href="{{ url_for('grades.index') }}" class="btn btn-outline-primary btn-sm">
+            Voir toutes mes notes</a>
+    </div>
+</div>
+{% endblock %}

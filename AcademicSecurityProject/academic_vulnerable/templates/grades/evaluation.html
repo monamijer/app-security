@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Nouvelle évaluation{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-clipboard-plus"></i> Nouvelle évaluation</h2>
+</div>
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Titre</label>
+                    <input type="text" name="title" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Type</label>
+                    <select name="type" class="form-select">
+                        <option value="examen">Examen</option>
+                        <option value="controle">Contrôle</option>
+                        <option value="tp">TP</option>
+                        <option value="projet">Projet</option>
+                        <option value="oral">Oral</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Note maximale</label>
+                    <input type="number" name="max_score" class="form-control" value="20" step="0.5">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Cours</label>
+                    <select name="course_id" class="form-select" required>
+                        {% for c in courses %}<option value="{{ c.id }}">{{ c.code }} — {{ c.title }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Coefficient</label>
+                    <input type="number" name="weight" class="form-control" value="1" step="0.5">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="evaluation_date" class="form-control">
+                </div>
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-primary"><i class="bi bi-check"></i> Créer</button>
+                <a href="{{ url_for('grades.index') }}" class="btn btn-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
