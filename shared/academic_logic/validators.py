@@ -1,60 +1,58 @@
-"""Validateurs métier partagés."""
 import re
-
-MATRICULE_RE = re.compile(r"^[A-Z]{2,4}\d{4,8}$")
-COURSE_CODE_RE = re.compile(r"^[A-Z]{2,5}\d{3,4}$")
-USERNAME_RE = re.compile(r"^[a-zA-Z0-9_.-]{3,40}$")
-EMPLOYEE_CODE_RE = re.compile(r"^[A-Z]{2,4}[A-Z0-9]{3,8}$")
+from email_validator import validate_email, EmailNotValidError
 
 
-def is_valid_username(value: str) -> bool:
-    return bool(value) and bool(USERNAME_RE.match(value))
-
-
-def is_valid_matricule(value: str) -> bool:
-    return bool(value) and bool(MATRICULE_RE.match(value))
-
-
-def is_valid_course_code(value: str) -> bool:
-    return bool(value) and bool(COURSE_CODE_RE.match(value))
-
-
-def is_valid_employee_code(value: str) -> bool:
-    return bool(value) and bool(EMPLOYEE_CODE_RE.match(value))
-
-
-def is_valid_email(value: str) -> bool:
-    if not value:
+def is_valid_username(username):
+    if not isinstance(username, str):
         return False
-    return bool(re.match(r"^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$", value))
+    return bool(re.fullmatch(r"[A-Za-z0-9_]{3,30}", username))
 
 
-def is_strong_password(value: str) -> tuple[bool, str]:
-    """Politique minimale : >= 10 chars, maj, min, chiffre, spécial."""
-    if not value or len(value) < 10:
-        return False, "Le mot de passe doit contenir au moins 10 caractères."
-    if not re.search(r"[A-Z]", value):
-        return False, "Au moins une majuscule requise."
-    if not re.search(r"[a-z]", value):
-        return False, "Au moins une minuscule requise."
-    if not re.search(r"\d", value):
-        return False, "Au moins un chiffre requis."
-    if not re.search(r"[^A-Za-z0-9]", value):
-        return False, "Au moins un caractère spécial requis."
-    return True, "OK"
-
-
-def is_valid_ipv4(value: str) -> bool:
-    """Validation stricte IPv4 (Mission 1.10)."""
-    if not value:
+def is_valid_email(email):
+    if not isinstance(email, str):
         return False
-    parts = value.split(".")
-    if len(parts) != 4:
+    try:
+        validate_email(email, check_deliverability=False)
+        return True
+    except EmailNotValidError:
         return False
-    for p in parts:
-        if not p.isdigit():
-            return False
-        n = int(p)
-        if n < 0 or n > 255:
-            return False
-    return True
+
+
+def is_strong_password(password):
+    if not isinstance(password, str):
+        return False, "Mot de passe invalide."
+
+    if len(password) < 12:
+        return False, "Le mot de passe doit contenir au moins 12 caractères."
+
+    if not re.search(r"[A-Z]", password):
+        return False, "Ajoutez une lettre majuscule."
+
+    if not re.search(r"[a-z]", password):
+        return False, "Ajoutez une lettre minuscule."
+
+    if not re.search(r"[0-9]", password):
+        return False, "Ajoutez un chiffre."
+
+    if not re.search(r"[^A-Za-z0-9]", password):
+        return False, "Ajoutez un caractère spécial."
+
+    return True, "Mot de passe valide."
+
+
+def is_valid_matricule(matricule):
+    if not isinstance(matricule, str):
+        return False
+    return bool(re.fullmatch(r"[A-Za-z0-9/-]{3,30}", matricule))
+
+
+def is_valid_employee_code(code):
+    if not isinstance(code, str):
+        return False
+    return bool(re.fullmatch(r"[A-Za-z0-9_-]{3,30}", code))
+
+
+def is_valid_course_code(code):
+    if not isinstance(code, str):
+        return False
+    return bool(re.fullmatch(r"[A-Za-z0-9_-]{2,30}", code))

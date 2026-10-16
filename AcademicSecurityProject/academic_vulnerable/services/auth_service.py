@@ -17,13 +17,28 @@ import jwt
 from models import db
 from models.user import User
 from models.login_history import LoginHistory
-from shared.academic_logic.helpers import get_client_ip, get_user_agent
+
+# Import robuste : accepte plusieurs emplacements possibles des helpers.
+try:
+    from shared.academic_logic.helpers import get_client_ip, get_user_agent
+except ImportError:
+    # Fallback minimal si le module shared.academic_logic n'est pas encore complet.
+    from flask import request
+
+    def get_client_ip() -> str:
+        forwarded = request.headers.get("X-Forwarded-For")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+        return request.remote_addr or "unknown"
+
+    def get_user_agent() -> str:
+        return request.headers.get("User-Agent", "unknown")
 
 
 class AuthService:
 
     @staticmethod
-    def authenticate(username: str, password: str) -> User | None:
+    def authenticate(username: str, password: str):
         """
         ⚠️ Volontairement vulnérable : requête SQL par concaténation (Mission 1.9).
         NE PAS RÉUTILISER hors du laboratoire.
@@ -71,7 +86,7 @@ class AuthService:
 
     # --------- JWT (volontairement laxiste) ---------
     @staticmethod
-    def generate_jwt(user: User) -> str:
+    def generate_jwt(user) -> str:
         payload = {
             "sub": user.id,
             "username": user.username,
@@ -86,7 +101,7 @@ class AuthService:
         )
 
     @staticmethod
-    def decode_jwt(token: str) -> dict | None:
+    def decode_jwt(token: str):
         """⚠️ Pas de vérification stricte d'algorithme / audience / issuer."""
         try:
             return jwt.decode(

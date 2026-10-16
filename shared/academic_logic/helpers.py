@@ -1,43 +1,61 @@
-"""Utilitaires partagés."""
-from datetime import datetime
+"""
+Utilitaires partagés pour AcademicSecurityProject.
+Fournit les fonctions d'accès à la requête Flask utilisées par les services.
+"""
+
 from flask import request
 
 
 def get_client_ip() -> str:
-    """Récupère l'IP cliente (derrière proxy éventuel)."""
-    if request is None:
-        return "0.0.0.0"
-    fwd = request.headers.get("X-Forwarded-For", "")
-    if fwd:
-        return fwd.split(",")[0].strip()
-    return request.remote_addr or "0.0.0.0"
+    """
+    Retourne l'adresse IP du client.
+    Gère le cas où l'application est derrière un proxy (X-Forwarded-For).
+    """
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        # X-Forwarded-For peut contenir plusieurs IP séparées par des virgules,
+        # la première correspond au client d'origine.
+        return forwarded.split(",")[0].strip()
+    return request.remote_addr or "unknown"
 
 
 def get_user_agent() -> str:
-    if request is None:
-        return ""
-    return (request.headers.get("User-Agent") or "")[:255]
+    """
+    Retourne le User-Agent du client, ou 'unknown' s'il est absent.
+    """
+    return request.headers.get("User-Agent", "unknown")
 
 
-def compute_average(grades: list[float]) -> float:
-    if not grades:
-        return 0.0
-    return round(sum(grades) / len(grades), 2)
+def get_request_headers() -> dict:
+    """
+    Retourne les en-têtes HTTP de la requête sous forme de dictionnaire.
+    Utile pour les rapports du tableau de bord.
+    """
+    return dict(request.headers)
 
 
-def compute_weighted_average(pairs: list[tuple[float, float]]) -> float:
-    """pairs = [(score, weight), ...]"""
-    if not pairs:
-        return 0.0
-    total_w = sum(w for _, w in pairs)
-    if total_w == 0:
-        return 0.0
-    return round(sum(s * w for s, w in pairs) / total_w, 2)
+def is_https() -> bool:
+    """
+    Indique si la requête courante est en HTTPS.
+    Prend en compte X-Forwarded-Proto (utile derrière Nginx).
+    """
+    if request.headers.get("X-Forwarded-Proto", "").lower() == "https":
+        return True
+    return request.is_secure
 
 
-def generate_matricule(prefix: str, number: int) -> str:
-    return f"{prefix}{number:05d}"
-
-
-def now_str() -> str:
-    return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+def anonymize_ip(ip: str) -> str:
+    """
+    Anonymise une adresse IP pour les rapports.
+    - IPv4 : remplace le dernier octet par 'xxx'
+    - IPv6 : remplace les 4 derniers groupes par 'xxxx'
+    """
+    if not ip or ip == "unknown":
+        return "unknown"
+    if ":" in ip:  # IPv6
+        parts = ip.split(":")
+        return ":".join(parts[:4] + ["xxxx", "xxxx", "xxxx", "xxxx"])
+    parts = ip.split(".")
+    if len(parts) == 4:
+        return ".".join(parts[:3] + ["xxx"])
+    return ip

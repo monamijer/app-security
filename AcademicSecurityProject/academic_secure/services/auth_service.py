@@ -1,6 +1,13 @@
+import os
+import sys
+
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+
 """
-Service d'authentification — VERSION SÉCURISÉE.
-Corrige les faiblesses des missions 1.9, 1.13 et 1.14.
+Service d'authentification — VERSION VULNÉRABLE.
+Contient volontairement des faiblesses pour les missions 1.9 et 1.13.
 """
 from datetime import datetime, timedelta
 from flask import current_app
@@ -10,51 +17,54 @@ import jwt
 from models import db
 from models.user import User
 from models.login_history import LoginHistory
-from shared.academic_logic.helpers import get_client_ip, get_user_agent
 
-MAX_FAILED_ATTEMPTS = 5
-LOCK_DURATION_MINUTES = 15
+# Import robuste : accepte plusieurs emplacements possibles des helpers.
+try:
+    from shared.academic_logic.helpers import get_client_ip, get_user_agent
+except ImportError:
+    # Fallback minimal si le module shared.academic_logic n'est pas encore complet.
+    from flask import request
+
+    def get_client_ip() -> str:
+        forwarded = request.headers.get("X-Forwarded-For")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+        return request.remote_addr or "unknown"
+
+    def get_user_agent() -> str:
+        return request.headers.get("User-Agent", "unknown")
 
 
 class AuthService:
 
     @staticmethod
-    def authenticate(username: str, password: str) -> User | None:
-        """Requête paramétrée + limitation des tentatives."""
-        if not username or not password:
-            AuthService._log(username or "", False, "missing_credentials")
-            return None
+    def authenticate(username: str, password: str):
+        """
+        ⚠️ Volontairement vulnérable : requête SQL par concaténation (Mission 1.9).
+        NE PAS RÉUTILISER hors du laboratoire.
+        """
+        from sqlalchemy import text
+        query = text(
+            f"SELECT * FROM users WHERE username = '{username}' LIMIT 1"
+        )
+        try:
+            row = db.session.execute(query).fetchone()
+        except Exception:
+            row = None
 
-        user = User.query.filter_by(username=username).first()
+        user = None
+        if row:
+            user = User.query.get(row[0])
 
-        if user and user.locked_until and user.locked_until > datetime.utcnow():
-            AuthService._log(username, False, "account_locked")
-            return None
+        success = bool(user and user.check_password(password))
+        AuthService._log(username, success, "OK" if success else "bad_credentials")
 
-        if not user or not user.check_password(password):
-            if user:
-                user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
-                if user.failed_login_attempts >= MAX_FAILED_ATTEMPTS:
-                    user.locked_until = datetime.utcnow() + timedelta(
-                        minutes=LOCK_DURATION_MINUTES
-                    )
-                db.session.commit()
-            AuthService._log(username, False, "bad_credentials")
-            return None
-
-        if not user.is_active:
-            AuthService._log(username, False, "inactive")
-            return None
-
-        # Succès → reset compteurs
-        user.failed_login_attempts = 0
-        user.locked_until = None
-        user.last_login = datetime.utcnow()
-        db.session.commit()
-
-        login_user(user)
-        AuthService._log(username, True, "OK")
-        return user
+        if success and user.is_active:
+            login_user(user)
+            user.last_login = datetime.utcnow()
+            db.session.commit()
+            return user
+        return None
 
     @staticmethod
     def logout():
@@ -64,7 +74,7 @@ class AuthService:
     def _log(username: str, success: bool, reason: str) -> None:
         try:
             db.session.add(LoginHistory(
-                username_attempted=username[:80],
+                username_attempted=username,
                 ip_address=get_client_ip(),
                 user_agent=get_user_agent(),
                 success=success,
@@ -74,43 +84,31 @@ class AuthService:
         except Exception:
             db.session.rollback()
 
-    # --------- JWT strict ---------
+    # --------- JWT (volontairement laxiste) ---------
     @staticmethod
-    def generate_jwt(user: User) -> str:
-        now = datetime.utcnow()
+    def generate_jwt(user) -> str:
         payload = {
-            "sub": str(user.id),
+            "sub": user.id,
             "username": user.username,
             "role": user.role.name if user.role else None,
-            "iss": current_app.config["JWT_ISSUER"],
-            "aud": current_app.config["JWT_AUDIENCE"],
-            "iat": now,
-            "nbf": now,
-            "exp": now + timedelta(hours=current_app.config["JWT_EXPIRATION_HOURS"]),
+            "exp": datetime.utcnow() + timedelta(hours=24),
+            "iat": datetime.utcnow(),
         }
         return jwt.encode(
             payload,
             current_app.config["JWT_SECRET_KEY"],
-            algorithm="HS256",  # imposé
+            algorithm=current_app.config["JWT_ALGORITHM"],
         )
 
     @staticmethod
-    def decode_jwt(token: str) -> dict | None:
+    def decode_jwt(token: str):
+        """⚠️ Pas de vérification stricte d'algorithme / audience / issuer."""
         try:
             return jwt.decode(
                 token,
                 current_app.config["JWT_SECRET_KEY"],
-                algorithms=["HS256"],  # jamais lu depuis le token
-                issuer=current_app.config["JWT_ISSUER"],
-                audience=current_app.config["JWT_AUDIENCE"],
-                options={
-                    "require": ["exp", "iat", "iss", "aud", "sub"],
-                    "verify_exp": True,
-                    "verify_iss": True,
-                    "verify_aud": True,
-                },
+                algorithms=[current_app.config["JWT_ALGORITHM"]],
+                options={"verify_aud": False, "verify_iss": False},
             )
-        except jwt.ExpiredSignatureError:
-            return None
-        except jwt.InvalidTokenError:
+        except Exception:
             return None
