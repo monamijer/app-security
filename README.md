@@ -1,107 +1,161 @@
-# Application Security Lab: Secure vs. Vulnerable Application
+# Academic Security Project — School Management System
 
-A Bachelor 2 application-security project developed by two students. The project is designed to demonstrate how common application vulnerabilities can be exploited in a deliberately vulnerable service, and how appropriate security controls reduce or prevent the same attacks in a hardened service.
+A Bachelor 2 application-security project developed by two students using **Python and Flask**. The project compares two functionally equivalent School Management System applications: one intentionally vulnerable and one hardened.
 
-> **Educational lab only.** The vulnerable service is intentionally insecure. Run both services only in an isolated local development environment, using test data. Do not expose the vulnerable service to the public internet or use these techniques against systems without explicit authorization.
+- **Vulnerable application:** demonstrates selected weaknesses in a controlled academic laboratory.
+- **Secure application:** applies defensive controls and must reject or safely handle the same test cases.
 
-## Project goals
+> **Safety:** This is an educational security lab, not a production application. Use synthetic accounts and records only. Keep the vulnerable instance on an isolated trusted network; never expose it to the public internet. Test only the two systems explicitly authorized for this project.
 
-The application will expose two comparable versions of the same functionality:
+## Project objectives
 
-| Service | Purpose | Expected behavior |
-| --- | --- | --- |
-| **Insecure port** | Demonstrate common security weaknesses in a controlled target. | Selected attacks should succeed, with their impact observable and documented. |
-| **Secure port** | Demonstrate how defensive coding and configuration mitigate those weaknesses. | The same attack attempts should be rejected or safely handled. |
+1. Maintain one realistic School Management System with equivalent features in both versions.
+2. Demonstrate the 14 security missions required by the instructor against the vulnerable version or through explicitly harmless simulations.
+3. Implement and verify the corresponding defenses in the secure version.
+4. Preserve repeatable test cases and sanitized evidence for the final report and oral defense.
+5. Explain the root cause, impact, mitigation, and test result for every mission.
 
-The two services should provide equivalent features and use comparable test data. This makes the security controls—not differences in functionality—the main variable in the comparison.
+## Technology and environment
 
-## Learning objectives
+| Component | Current project choice |
+|---|---|
+| Backend | Python 3, Flask 3 |
+| ORM / database | Flask-SQLAlchemy, SQLite |
+| Authentication | Flask-Login, Flask-WTF, PyJWT |
+| Secure password hashing | Argon2id (argon2-cffi) |
+| Vulnerable password hashing | PBKDF2-SHA256 configured with one iteration and a short salt (intentionally weak) |
+| Frontend | Jinja2, HTML, CSS, JavaScript, Bootstrap |
+| Tests | pytest, pytest-flask |
+| Reverse proxy configuration | Nginx configuration files are present |
+| Attacker workstation | Arch Linux |
+| Application host | Windows laptop (as reported by the project team) |
+| Team | Two students |
 
-- Identify common web-application vulnerabilities and understand their root causes.
-- Demonstrate attacks against a deliberately vulnerable implementation in a controlled lab.
-- Implement and explain defensive measures in the secure implementation.
-- Compare the results using repeatable test cases and evidence.
-- Communicate security findings, limitations, and recommendations.
+The repository contains Nginx configuration written with Linux paths and deployment assumptions. The Windows deployment must be checked separately; do not assume the checked-in Nginx configuration runs unchanged on Windows.
 
-## Planned architecture
+## Applications and reported lab endpoints
 
-The project will run two application instances:
+| Service | Reported address | Purpose |
+|---|---|---|
+| Vulnerable | http://192.168.137.200:8080 | Controlled vulnerability demonstrations |
+| Secure | https://192.168.137.200:8081 | Defensive comparison |
 
-- **Insecure instance:** contains explicitly documented, intentionally introduced vulnerabilities.
-- **Secure instance:** implements the same use cases with appropriate validation, authorization, safe data handling, and secure configuration.
+These addresses and the observed HTTP/TLS behavior were supplied by the project team. They are **reported runtime observations**, not verified by reading the source code in this repository.
 
-The ports, framework, database, and deployment method will be documented here once the implementation choices are confirmed.
+### Deployment configuration needs reconciliation
 
-## Vulnerability and defense matrix
+The checked-in files currently describe different listener and upstream ports:
 
-The final list must match the features actually implemented. Candidate topics include:
+- **academic_vulnerable/app.py** runs on **127.0.0.1:8080** when launched directly.
+- **academic_secure/app.py** runs on **127.0.0.1:8081** when launched directly.
+- **nginx/vulnerable.conf** listens on **8080** and proxies to **127.0.0.1:5000**.
+- **nginx/secure.conf** listens on **443** and proxies to **127.0.0.1:5001**.
 
-| Topic | Insecure demonstration | Secure counterpart |
-| --- | --- | --- |
-| SQL injection | Unsafe construction of database queries | Parameterized queries / prepared statements |
-| Cross-site scripting (XSS) | Rendering untrusted input without context-aware escaping | Context-aware output encoding and safe rendering |
-| Broken authentication | Weak login or session handling in a test-only account flow | Password hashing, secure session handling, and appropriate authentication checks |
-| Broken access control / IDOR | Trusting a user-supplied object identifier without checking ownership | Server-side authorization on every protected operation |
-| Input validation | Accepting unexpected or malformed input | Server-side validation with safe failure behavior |
-| Security misconfiguration | Deliberately weak lab configuration, where appropriate | Secure defaults, reduced information disclosure, and appropriate headers |
+These are not one consistent deployment configuration. Before changing ports or giving launch commands, verify the actual Windows processes, reverse proxy, and port bindings with the teammate who hosts the applications.
 
-These are **candidate demonstrations, not claims that the repository currently implements them**. Only include a topic in the final report after the corresponding behavior and mitigation have been implemented and tested.
+The secure Nginx configuration references **secure.local** and certificate files under **/etc/nginx/ssl/**. The team has reported using a self-signed certificate whose SAN does not include **192.168.137.200**. A proper lab certificate must include the exact IP address in its IP Subject Alternative Name (or use a DNS name consistently), and the issuing lab CA must be trusted on the Arch Linux attacker machine. Until then, **curl -k** is only for temporary diagnostics; it disables certificate verification and does not establish trusted HTTPS.
 
-## Repository status
+## Repository structure
 
-This repository is at the documentation/planning stage. The application framework, endpoints, ports, database, and attack scenarios still need to be specified and implemented.
+The main application project is under **AcademicSecurityProject/**.
 
-## Getting started
+    app-security/
+    ├── AcademicSecurityProject/
+    │   ├── academic_vulnerable/     # Intentionally vulnerable Flask application
+    │   ├── academic_secure/         # Hardened Flask application
+    │   ├── shared/                  # Shared academic helper/validation logic
+    │   ├── laboratory/              # Project laboratory evidence
+    │   └── README.md                # Application-project documentation (French)
+    ├── database/
+    │   ├── seed.py                  # Creates matching synthetic datasets
+    │   └── reset_database.py
+    ├── documentation/               # Architecture, testing, and comparison docs
+    ├── laboratory/                  # Evidence, fixtures, test cases, sample files
+    ├── nginx/
+    │   ├── vulnerable.conf
+    │   └── secure.conf
+    └── README.md
 
-Setup and run commands will be added after the technology stack and project structure are selected.
+Both applications include modules for authentication, administration, students, teachers, courses, grades, documents, announcements, messages, diagnostics, models, services, templates, static assets, and tests.
 
-The intended workflow is:
+## The 14 required security missions
 
-1. Install the documented dependencies.
-2. Configure the application using local development settings.
-3. Start the insecure and secure instances on separate ports.
-4. Run the same authorized test cases against both instances.
-5. Record the outcome, evidence, and explanation for each test.
+The table below is an initial source-code review, not a claim that all missions have passed practical testing. “Partial” means that relevant code or configuration exists, but the complete instructor-required demonstration and secure comparison still need evidence. Re-test every behavior in the running lab.
 
-Do not use real credentials, personal information, or production data in this lab.
+| Mission | Topic and required tool / technique | Initial source review |
+|---|---|---|
+| 1.1 | Security audit and missing headers — Nikto | **Implemented in code/config:** vulnerable app adds no security headers; secure app defines CSP, X-Frame-Options, nosniff, and related headers. Runtime verification still required. |
+| 1.2 | Transport security and downgrade — testssl.sh / bettercap | **Partial:** secure Nginx config specifies TLS 1.2/1.3 and HSTS. Listener/port and certificate identity mismatch must be resolved; TLS scan evidence is still required. |
+| 1.3 | Reflected and stored XSS / CSP — XSStrike | **Partial:** vulnerable search output and announcement/comment templates contain unsafe rendering. Secure search and comment rendering use normal Jinja escaping, but the secure announcement template still uses the safe filter for announcement content. |
+| 1.4 | Clickjacking — HTML proof of concept | **Partial:** secure X-Frame-Options and CSP frame-ancestors are configured. The dedicated PoC and browser evidence still need to be created and tested. |
+| 1.5 | Polyglot upload and MIME sniffing — hexadecimal test file | **Partial:** vulnerable upload trusts the supplied filename and MIME metadata; secure upload checks extension and file signature and stores files outside static assets. Full browser/MIME test evidence is still required. |
+| 1.6 | Referer leakage — Wireshark | **Partial:** Referrer-Policy is configured in the secure version. A synthetic sensitive-URL demonstration and packet evidence are still required. |
+| 1.7 | Cross-window attacks / information leakage — window.open() PoC | **Partial:** COOP is configured. COEP is not present in the reviewed secure header configuration; cross-window PoC and browser verification remain. |
+| 1.8 | Browser hardware permissions — BeEF | **Partial:** secure Permissions-Policy denies camera, microphone, and geolocation. A harmless, explicit-permission browser demonstration and verification remain. |
+| 1.9 | SQL injection — SQLmap | **Known blocker:** vulnerable authentication and search code contain SQL string interpolation. The reviewed secure authentication service still contains the same unsafe SQL interpolation. Do not mark the secure SQLi defense complete until this is fixed and tested. |
+| 1.10 | OS command injection / RCE — Commix | **Safe simulation / partial:** vulnerable diagnostics displays a simulated command and fictional output; it does not execute the injected command. Secure diagnostics uses an argument list, input checks, and a timeout. Document the professor's RCE objective as a harmless simulation; do not create a reverse shell. |
+| 1.11 | Stored XSS and session cookie exposure — XSStrike | **Partial:** vulnerable session cookies disable HttpOnly and Secure. Secure enables HttpOnly and SameSite=Lax, but Secure is environment-dependent and defaults to False. The secure announcement template still renders announcement content with the safe filter. Use only synthetic cookie values. |
+| 1.12 | Directory traversal — DotDotPwn | **Implemented in source, testing pending:** vulnerable download joins a user-controlled path; secure download uses document IDs, safe_join, and ownership checks. Validate with synthetic files only. |
+| 1.13 | Password hashing / dictionary attack — Hashcat | **Implemented in source, testing pending:** vulnerable version uses deliberately weak PBKDF2-SHA256 (one iteration, short salt); secure version uses Argon2id. Generate hashes only for synthetic accounts. |
+| 1.14 | JWT tampering / privilege escalation — jwt_tool | **Partial:** vulnerable version uses a known fallback signing secret and trusts the role claim in /api/me. Secure configuration requires long secrets and the API reloads the role from the database. Strict issuer/audience validation and complete token tests still need review. |
 
-## Testing and demonstration
+### Important code-review findings
 
-For every selected vulnerability, document:
+These issues should be addressed before the secure application is presented as fully hardened:
 
-1. **Objective:** what weakness is being tested.
-2. **Insecure test:** the request or action used against the vulnerable instance.
-3. **Observed result:** what happened and what impact it demonstrates.
-4. **Secure test:** the equivalent attempt against the hardened instance.
-5. **Mitigation:** the code or configuration change that prevents the issue.
-6. **Evidence:** sanitized screenshots, requests/responses, logs, or test output.
+1. **SQL injection:** **academic_secure/services/auth_service.py** currently contains the same f-string SQL query construction as the vulnerable authentication service. Replace it with parameterized ORM queries or bound SQL parameters.
+2. **Stored XSS:** **academic_secure/templates/announcements/detail.html** still applies Jinja's safe filter to **announcement.content**. Remove unsafe rendering unless a rigorously sanitized HTML requirement is deliberately implemented.
+3. **Cookie transport:** **SESSION_COOKIE_SECURE** in the secure configuration defaults to **False**. Set it to **True** in the HTTPS deployment and verify the resulting cookie attributes.
+4. **TLS identity:** the reported self-signed certificate does not identify the server IP in its SAN. Use a trusted lab CA and an IP SAN or a consistent DNS name.
+5. **Deployment ports:** reconcile the Flask development entry points, Nginx listeners, Nginx upstream ports, and the reported Windows-hosted endpoints before changing deployment settings.
 
-The expected result is not simply that the secure port is harder to attack. Each security control should be explainable and supported by a repeatable test.
+## Testing rules and safety
 
-## Safety boundaries
+- Run tests only against the two project applications and the explicitly authorized lab host.
+- Use synthetic users, passwords, session cookies, JWTs, documents, and academic records.
+- Keep the vulnerable service isolated and never expose it to the public internet.
+- Avoid destructive SQL operations, arbitrary file reads, persistence, real remote shells, and testing unrelated hosts.
+- For command-execution and browser-permission missions, use harmless local demonstrations or simulations.
+- Do not commit session cookies, private keys, passwords, JWT signing secrets, or personal data.
+- Redact secrets and cookie values from terminal output, screenshots, logs, and the final report.
 
-- Keep the intentionally vulnerable service bound to localhost or an isolated lab network.
-- Never deploy the vulnerable instance to a public server.
-- Use only accounts and data created for this exercise.
-- Test only the two project instances and only within the scope agreed by the project team and instructor.
-- Do not include real secrets, passwords, tokens, or personal data in source control or screenshots.
+## Evidence standard
 
-## Team
+For each mission, record:
 
-Developed by two Bachelor 2 students. Add team member names and individual responsibilities when agreed.
+1. **Objective** — the weakness being tested.
+2. **Source review** — the actual route, template, model, or configuration involved.
+3. **Vulnerable test** — the authorized test and observed behavior.
+4. **Impact** — what the result demonstrates, without overstating it.
+5. **Secure test** — the equivalent test against the hardened instance.
+6. **Mitigation** — the precise defensive code or configuration.
+7. **Evidence** — sanitized request/response, output, screenshot, or test result.
+8. **Oral explanation** — root cause, impact, and why the defense works.
 
-## Decisions to finalize
+Do not mark a mission complete because a header exists or a test returns an expected status code alone. Verify the underlying behavior too.
 
-Before implementation, confirm:
+## Team and operating workflow
 
-- Application language and framework.
-- Whether the application is a web app, API, or both.
-- The exact features shared by the two instances.
-- The selected vulnerabilities and corresponding mitigations.
-- Port numbers and whether both instances use the same database or isolated databases.
-- How the application will be started and tested (local commands, Docker, or another method).
-- Whether the instructor expects a particular report format or attack-tool set.
+- **Team member A:** Arch Linux attacker/testing workstation.
+- **Team member B:** Windows laptop hosting the applications.
+- **Reported server IP:** 192.168.137.200.
+
+When giving practical steps, keep attacker and server instructions separate:
+
+- Arch Linux commands for the testing workstation.
+- PowerShell commands for Windows configuration when needed.
+- Explain what each command does and what result to expect.
+- Use actual repository routes and parameter names; do not invent endpoints.
+- Work in small, verifiable steps and diagnose failures before proposing workarounds.
+
+## Current next steps
+
+1. Reconcile the actual Windows deployment with the checked-in Nginx and Flask port configuration.
+2. Fix the secure authentication SQL injection and unsafe announcement HTML rendering.
+3. Resolve the lab TLS certificate identity and trust issue.
+4. Run the 14 missions one at a time, collecting evidence for both versions.
+5. Update the mission matrix only when the test and its defensive comparison have been verified.
 
 ## License
 
-Add the license required by the course or chosen by the project authors.
+See [LICENSE](LICENSE).
