@@ -165,18 +165,52 @@ curl -k -sSI "$SECURE/" | grep -i '^X-Content-Type-Options:' || echo "En-tête a
 ### Mission 1.6 — Fuite de Données Sensibles via Referrer (Referrer Leakage)
 
 * **Objectif :** Éviter que des jetons ou paramètres d'URL confidentiels ne soient transmis à des sites tiers lors du clic sur un lien sortant.
-* **Ce que fait l'attaque :** L'utilisateur clique sur un lien externe alors que l'URL contient un secret `?token=SECRET_ADMIN_TOKEN`.
+* **Ce que fait l'attaque :** L'utilisateur navigue sur une page contenant un secret d'authentification dans l'URL (`?token=SECRET_ADMIN_TOKEN_999`). En cliquant sur un lien externe, le navigateur sans politique restrictive inclut l'URL complète dans l'en-tête HTTP `Referer`.
 
-#### Test
-1. Lancer un écouteur Netcat sur Arch Linux :
+#### Déroulement du Test
+1. **Sur Arch Linux**, lancer le serveur d'écoute en arrière-plan pour capturer l'en-tête `Referer` :
    ```bash
-   nc -lvnp 9999
+   # Micro-serveur d'écoute Python (100% fiable, ne se coupe pas) :
+   python3 -c '
+   from http.server import HTTPServer, BaseHTTPRequestHandler
+   class Handler(BaseHTTPRequestHandler):
+       def do_GET(self):
+           print("\n" + "="*50)
+           print("🎯 REQUÊTE CAPTURÉE SUR LE PORT 9999 !")
+           print("Path    :", self.path)
+           print("Referer :", self.headers.get("Referer", "(aucun)"))
+           print("="*50 + "\n")
+           self.send_response(200)
+           self.end_headers()
+           self.wfile.write(b"CAPTURE OK")
+   print("Écoute active sur le port 9999...")
+   HTTPServer(("0.0.0.0", 9999), Handler).serve_forever()
+   '
    ```
-2. Visiter dans le navigateur : `http://192.168.0.225:8080/referrer-leak?token=SECRET_ADMIN_TOKEN`
-3. Cliquer sur le lien externe vers le port 9999 :
-   - **Vulnérable :** Le serveur Netcat reçoit `Referer: http://192.168.0.225:8080/referrer-leak?token=SECRET_ADMIN_TOKEN` (fuite totale du secret).
-4. Recommencer sur l'application sécurisée :
-   - **Sécurisé :** `Referrer-Policy: strict-origin-when-cross-origin` ne transmet que l'origine (`https://192.168.0.225:8081/`), le token est protégé.
+   *(Alternative Netcat si installé : `nc -l -k -p 9999` ou `ncat -l -k 9999`)*.
+
+2. **Dans le navigateur sur Arch Linux**, ouvrir l'URL vulnérable :
+   ```text
+   http://192.168.0.225:8080/referrer-leak?token=SECRET_ADMIN_TOKEN_999
+   ```
+3. Cliquer sur le bouton **« Cliquer vers le serveur externe de test »** :
+   * **Résultat Vulnérable :** Le terminal affiche :
+     ```text
+     Referer : http://192.168.0.225:8080/referrer-leak?token=SECRET_ADMIN_TOKEN_999
+     ```
+     👉 **Preuve de la fuite :** Le paramètre secret `token` a été transmis en clair au serveur externe tiers.
+
+4. **Dans le navigateur**, ouvrir maintenant l'URL sécurisée :
+   ```text
+   https://192.168.0.225:8081/referrer-leak?token=SECRET_ADMIN_TOKEN_999
+   ```
+5. Cliquer sur le bouton externe sécurisé :
+   * **Résultat Sécurisé :** Le terminal affiche :
+     ```text
+     Referer : https://192.168.0.225:8081/
+     ```
+     👉 **Preuve du blocage :** Grâce à `Referrer-Policy: strict-origin-when-cross-origin`, seul le nom de domaine de l'origine est transmis. Le chemin et le token secret sont **totalement masqués**.
+
 * **Statut :** **CONFIRMED**
 
 ---
