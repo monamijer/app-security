@@ -97,6 +97,26 @@ def create_app(config_class=Config) -> Flask:
         from flask import redirect, url_for
         return redirect(url_for("dashboard.index"))
 
+
+    @app.route("/referrer-leak")
+    def referrer_leak():
+        from flask import request, render_template_string
+
+        token = request.args.get("token", "")
+        return render_template_string("""
+            <!DOCTYPE html>
+            <html>
+            <head><title>Referrer Leakage Test</title></head>
+            <body>
+                <h1>Referrer Leakage Test</h1>
+                <p>Test marker: {{ token }}</p>
+                <a href="http://127.0.0.1:9999/capture">
+                    Click to test Referer leakage
+                </a>
+            </body>
+            </html>
+        """, token=token)
+
     return app
 
 
