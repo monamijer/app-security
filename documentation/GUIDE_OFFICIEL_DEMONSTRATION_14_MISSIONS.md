@@ -382,10 +382,12 @@ grep -nE 'PasswordHasher|time_cost|memory_cost|parallelism|argon2' \
 
 #### Test 1 — Obtention d'un jeton légitime (Étudiant)
 ```bash
-TOKEN=$(curl -s -X POST "$VULN/api/token" \
-  -H "Content-Type: application/json" \
-  -d '{"username": "student1", "password": "Student@2025!1"}' | grep -o '"token":"[^"]*' | cut -d'"' -f4)
+  RAW=$(curl -s -X POST "$VULN/api/token" \
+    -H "Content-Type: application/json" \
+    -d '{"username": "student1", "password": "Student@2025!1"}')
 
+TOKEN=$(printf '%s' "$RAW" | python3 -c "import sys, json; d=json.load(sys.stdin); print(d.get('token') or d.get('access_token') or '')")
+echo "$TOKEN"
 # Consultation du profil :
 curl -s -H "Authorization: Bearer $TOKEN" "$VULN/api/me"
 # -> {"role": "student", "user_id": 9}
