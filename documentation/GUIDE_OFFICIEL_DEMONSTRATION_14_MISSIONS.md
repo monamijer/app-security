@@ -171,20 +171,21 @@ curl -k -sSI "$SECURE/" | grep -i '^X-Content-Type-Options:' || echo "En-tête a
 1. **Sur Arch Linux**, lancer le serveur d'écoute en arrière-plan pour capturer l'en-tête `Referer` :
    ```bash
    # Micro-serveur d'écoute Python (100% fiable, ne se coupe pas) :
-   python3 -c '
-   from http.server import HTTPServer, BaseHTTPRequestHandler
-   class Handler(BaseHTTPRequestHandler):
-       def do_GET(self):
-           print("\n" + "="*50)
-           print("🎯 REQUÊTE CAPTURÉE SUR LE PORT 9999 !")
-           print("Path    :", self.path)
-           print("Referer :", self.headers.get("Referer", "(aucun)"))
-           print("="*50 + "\n")
-           self.send_response(200)
-           self.end_headers()
-           self.wfile.write(b"CAPTURE OK")
-   print("Écoute active sur le port 9999...")
-   HTTPServer(("0.0.0.0", 9999), Handler).serve_forever()
+python3 -c '
+from http.server import HTTPServer, BaseHTTPRequestHandler
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        print("\n" + "="*40)
+        print("🎯 REQUÊTE CAPTURÉE !")
+        print("Path    :", self.path)
+        print("Referer :", self.headers.get("Referer", "(aucun)"))
+        print("="*40 + "\n")
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"OK CAPTURE")
+print("Écoute active sur le port 9999...")
+HTTPServer(("0.0.0.0", 9999), Handler).serve_forever()
+'
    '
    ```
    *(Alternative Netcat si installé : `nc -l -k -p 9999` ou `ncat -l -k 9999`)*.
